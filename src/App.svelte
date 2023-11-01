@@ -1,47 +1,101 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+  import Dice from "./Dice.svelte";
+
+  const NUMBER_OF_FACES = 6;
+  const MIN_NUMBER_OF_DICE = 1;
+  const MAX_NUMBER_OF_DICE = 12;
+
+  function getRollDice(numberOfDice) {
+    return Array.from({ length: numberOfDice }, () =>
+      Math.max(Math.ceil(Math.random() * NUMBER_OF_FACES), 1)
+    );
+  }
+
+  let rolledDice = [];
 </script>
 
-<main>
-  <div>
-    <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
+<div class="wrapper">
+  <!-- To prevent a page reload. -->
+  <form
+    on:submit|preventDefault={(event) => {
+      const data = new FormData(event.target);
+      // Convert the input value to a number.
+      const numberOfDice = +data.get("dice-count");
+      rolledDice = getRollDice(numberOfDice);
+    }}
+    class="dice-form"
+  >
+    <div>
+      <label for="dice-input">Number of dice</label>
+      <input
+        id="dice-input"
+        name="dice-count"
+        required={true}
+        type="number"
+        min={MIN_NUMBER_OF_DICE}
+        max={MAX_NUMBER_OF_DICE}
+      />
+    </div>
+    <button type="submit">Roll</button>
+  </form>
 
-  <div class="card">
-    <Counter />
-  </div>
+  {#if rolledDice.length > 0}
+    <div class="dice-list" role="status" aria-live="polite">
+      {#each rolledDice as value, index (index)}
+        <Dice {value} />
+      {/each}
 
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
-</main>
+      <!-- Announced by screen readers.-->
+      <div class="sr-only">
+        Roll results: {rolledDice.join(", ")}
+      </div>
+    </div>
+  {/if}
+</div>
 
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
+  .wrapper {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    padding-top: 16px;
   }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
+
+  .dice-form {
+    display: flex;
+    align-items: end;
+    gap: 16px;
   }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
+
+  .dice-form label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 8px;
   }
-  .read-the-docs {
-    color: #888;
+
+  .dice-form input {
+    width: 100%;
+  }
+
+  .dice-list {
+    background-color: #eaeaea;
+    border-radius: 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
   }
 </style>
